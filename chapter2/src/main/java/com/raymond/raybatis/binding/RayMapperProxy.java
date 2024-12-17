@@ -4,8 +4,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-import org.apache.ibatis.session.SqlSession;
-
 import com.raymond.raybatis.RaySqlSession;
 import com.raymond.raybatis.testdata.dao.Country;
 
@@ -17,7 +15,8 @@ public class RayMapperProxy<T> implements InvocationHandler {
     private final Class<T> mapperInterface;
     private final Map<Method, RayMapperMethod> methodCache;
 
-    public RayMapperProxy(RaySqlSession sqlSession, Class<T> mapperInterface, Map<Method, RayMapperMethod> methodCache) {
+    public RayMapperProxy(RaySqlSession sqlSession, Class<T> mapperInterface,
+                          Map<Method, RayMapperMethod> methodCache) {
         this.sqlSession = sqlSession;
         this.mapperInterface = mapperInterface;
         this.methodCache = methodCache;
@@ -25,16 +24,13 @@ public class RayMapperProxy<T> implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        log.info("拦截到了方法:{}", method.getName());
+        RayMapperMethod rayMapperMethod = cachedMapperMethod(method);
+        return rayMapperMethod.execute(sqlSession, args);
+    }
 
-        Object ret = mockRet(method);
-        if (ret != null) {
-            log.info("成功mock返回数据:{}", ret);
-            return ret;
-        }
-
-        log.info("未匹配mock策略，返回null");
-        return null;
+    private RayMapperMethod cachedMapperMethod(Method method) {
+        return methodCache.computeIfAbsent(method, k -> new RayMapperMethod(mapperInterface, method,
+                sqlSession.getConfiguration()));
     }
 
     private Object mockRet(Method method) {
