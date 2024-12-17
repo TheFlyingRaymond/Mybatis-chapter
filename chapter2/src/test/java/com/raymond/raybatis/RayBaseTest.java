@@ -10,16 +10,12 @@ import com.raymond.raybatis.parsing.RayXPathParser;
 
 public class RayBaseTest {
     protected RaySessionFactory sessionFactory;
-//        protected RayXMLConfigBuilder builder;
-    protected Reader reader;
     protected RayXPathParser parser;
 
     @Before
     public void before() throws Exception {
-        parser = new RayXPathParser(reader = Resources.getResourceAsReader("batis-config.xml"));
-//        builder = new RayXMLConfigBuilder();
 
-        sessionFactory = new RaySessionFactoryBuilder().build(reader);
+        sessionFactory = new RaySessionFactoryBuilder().build(Resources.getResourceAsReader("batis-config.xml"));
 
     }
 }
